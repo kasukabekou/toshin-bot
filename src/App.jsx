@@ -1,122 +1,225 @@
-﻿import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 
-// ===== 繝代Φ繝輔Ξ繝・ヨ繝ｻ繝ｪ繝ｼ繝輔Ξ繝・ヨ縺ｮ繝繧ｦ繝ｳ繝ｭ繝ｼ繝峨Μ繝ｳ繧ｯ險ｭ螳・=====
-// 窶ｻ螳滄圀縺ｮ繝輔ぃ繧､繝ｫURL縺ｫ蟾ｮ縺玲崛縺医※縺上□縺輔＞・・oogle Drive蜈ｱ譛峨Μ繝ｳ繧ｯ遲会ｼ・const DOCS = {
+// ===== パンフレット・リーフレットのダウンロードリンク設定 =====
+// ※実際のファイルURLに差し替えてください（Google Drive共有リンク等）
+const DOCS = {
   pamphlet: {
-    label: "蜈･蟄ｦ譯亥・繝代Φ繝輔Ξ繝・ヨ",
-    url: "https://www.toshin-kasukabe.com/", // 竊・螳滄圀縺ｮPDF蜈ｱ譛蔚RL縺ｫ螟画峩
-    icon: "祷",
+    label: "入学案内パンフレット",
+    url: "https://www.toshin-kasukabe.com/", // ← 実際のPDF共有URLに変更
+    icon: "📘",
   },
   summer: {
-    label: "螟乗悄迚ｹ蛻･諡帛ｾ・ｬ帷ｿ偵Μ繝ｼ繝輔Ξ繝・ヨ",
-    url: "https://www.toshin.com/tokubetsu_shotai/", // 竊・螳滄圀縺ｮPDF蜈ｱ譛蔚RL縺ｫ螟画峩
-    icon: "笘・・,
+    label: "夏期特別招待講習リーフレット",
+    url: "https://www.toshin.com/tokubetsu_shotai/", // ← 実際のPDF共有URLに変更
+    icon: "☀️",
   },
 };
 
-// ===== 雉・侭繧呈｡亥・縺吶ｋ繧ｭ繝ｼ繝ｯ繝ｼ繝・=====
-const PAMPHLET_KEYWORDS = ["蜈･蟄ｦ", "蜈･蝪ｾ", "逕ｳ縺苓ｾｼ縺ｿ", "逕ｳ霎ｼ", "繧ｳ繝ｼ繧ｹ", "蟄ｦ雋ｻ", "譁咎≡", "雋ｻ逕ｨ", "謇狗ｶ壹″", "豬√ｌ"];
-const SUMMER_KEYWORDS = ["螟乗悄", "螟乗悄迚ｹ蛻･", "諡帛ｾ・ｬ帷ｿ・, "辟｡譁吩ｽ馴ｨ・, "螟丈ｼ代∩", "螟・, "諡帛ｾ・];
+// ===== 資料を案内するキーワード =====
+const PAMPHLET_KEYWORDS = ["入学", "入塾", "申し込み", "申込", "コース", "学費", "料金", "費用", "手続き", "流れ"];
+const SUMMER_KEYWORDS = ["夏期", "夏期特別", "招待講習", "無料体験", "夏休み", "夏", "招待"];
 
 const KASUKABE_KB = `
-縲先擲騾ｲ繝上う繧ｹ繧ｯ繝ｼ繝ｫ譏･譌･驛ｨ譬｡ 蝓ｺ譛ｬ諠・ｱ縲・- 譬｡闊朱聞: 譏滄㍽ 螟ｧ雋ｴ
-- 菴乗園: 蝓ｼ邇臥恁譏･譌･驛ｨ蟶ゆｸｭ螟ｮ1-52-1 譏･譌･驛ｨ繧ｻ繝ｳ繝医Λ繝ｫ繝薙Ν2F
-- 繝輔Μ繝ｼ繝繧､繝､繝ｫ: 0120-104-508
-- 逶ｴ騾・ 048-734-5611
-- 謨呵ご逅・ｿｵ: 縲檎峡遶玖・蟆翫・遉ｾ莨壹・荳也阜縺ｫ雋｢迪ｮ縺吶ｋ莠ｺ雋｡繧定ご謌舌☆繧九・- 譬｡闊弱・迚ｹ濶ｲ: 莉ｲ髢薙→蛻・｣狗世逎ｨ縺怜・蜩｡縺ｧ蜷域ｼ繧堤岼謖・☆豢ｻ豌励≠繧区｡闊弱ゅ後％繧薙↓縺｡縺ｯ・√阪→縺・≧蜈・ｰ励↑謖ｨ諡ｶ縺梧ｺ｢繧後ｋ譏弱ｋ縺・峅蝗ｲ豌励・- 髢矩､ｨ譎る俣: 蟷ｳ譌･ 13:00縲・2:00 ・・蝨滓屆譌･ 10:00縲・2:00 ・・譌･譖懈律 10:00縲・9:00
-- 髟ｷ譛滉ｼ第嚊荳ｭ縺ｮ髢矩､ｨ譎る俣: 螟丈ｼ代∩譛滄俣・・/18縲・/31・・:30縲・2:00・磯壼ｸｸ繧医ｊ譌ｩ縺城幕鬢ｨ・・
-縲占ｿ鷹團縺ｮ荳ｻ隕∝・霄ｫ鬮俶｡・亥粋譬ｼ螳溽ｸｾ繧医ｊ・峨・譏･譌･驛ｨ鬮倡ｭ牙ｭｦ譬｡縲∬ｶ願ｰｷ蛹鈴ｫ倡ｭ牙ｭｦ譬｡縲・幕譎ｺ鬮倡ｭ牙ｭｦ譬｡縲∵丼譌･驛ｨ蜈ｱ譬・ｫ倡ｭ牙ｭｦ譬｡縲∵丼譌･驛ｨ譚ｱ鬮倡ｭ牙ｭｦ譬｡縲∬ｶ願ｰｷ蜊鈴ｫ倡ｭ牙ｭｦ譬｡
+【東進ハイスクール春日部校 基本情報】
+- 校舎長: 星野 大貴
+- 住所: 埼玉県春日部市中央1-52-1 春日部セントラルビル2F
+- フリーダイヤル: 0120-104-508
+- 直通: 048-734-5611
+- 教育理念: 「独立自尊の社会・世界に貢献する人財を育成する」
+- 校舎の特色: 仲間と切磋琢磨し全員で合格を目指す活気ある校舎。「こんにちは！」という元気な挨拶が溢れる明るい雰囲気。
+- 開館時間: 平日 13:00〜22:00 ／ 土曜日 10:00〜22:00 ／ 日曜日 10:00〜19:00
+- 長期休暇中の開館時間: 夏休み期間（7/18〜8/31）8:30〜22:00（通常より早く開館）
 
-縲・026蟷ｴ譏･譌･驛ｨ譬｡ 荳ｻ縺ｪ蜷域ｼ螳溽ｸｾ縲・蝗ｽ蜈ｬ遶・ 荳讖句､ｧ蟄ｦ遉ｾ莨壼ｭｦ驛ｨ・域丼譌･驛ｨ鬮假ｼ峨∵擲莠ｬ遘大ｭｦ螟ｧ蟄ｦ逕溷多逅・ｷ･蟄ｦ髯｢・郁ｶ願ｰｷ蛹鈴ｫ假ｼ峨∝圏豬ｷ驕灘､ｧ蟄ｦ豁ｯ蟄ｦ驛ｨ・磯幕譎ｺ鬮假ｼ峨∽ｹ晏ｷ槫､ｧ蟄ｦ邨梧ｸ亥ｭｦ驛ｨ・域丼譌･驛ｨ蜈ｱ譬・ｫ假ｼ峨∝鴻闡牙､ｧ蟄ｦ譁・ｭｦ驛ｨ・域丼譌･驛ｨ譚ｱ鬮假ｼ・遘∫ｫ・ 譌･譛ｬ蛹ｻ遘大､ｧ蟄ｦ蛹ｻ蟄ｦ驛ｨ・磯幕譎ｺ鬮假ｼ峨∵・蠢懃ｾｩ蝪ｾ螟ｧ蟄ｦ蝠・ｭｦ驛ｨ・域丼譌･驛ｨ鬮假ｼ峨∵掠遞ｲ逕ｰ螟ｧ蟄ｦ譁・喧讒区Φ蟄ｦ驛ｨ・磯幕譎ｺ鬮假ｼ峨∽ｸ頑匱螟ｧ蟄ｦ逅・ｷ･蟄ｦ驛ｨ・郁ｶ願ｰｷ蜊鈴ｫ假ｼ峨∵擲莠ｬ逅・ｧ大､ｧ蟄ｦ阮ｬ蟄ｦ驛ｨ・域丼譌･驛ｨ蜈ｱ譬・ｫ假ｼ・
-縲先球莉ｻ蜉ｩ謇具ｼ亥､ｧ蟄ｦ逕溘せ繧ｿ繝・ヵ・峨・繝ｻ譌ｩ遞ｲ逕ｰ螟ｧ蟄ｦ 譁・喧讒区Φ蟄ｦ驛ｨ 譁・喧讒区Φ蟄ｦ遘托ｼ育ｧ∫ｫ矩幕譎ｺ鬮俶｡繝ｻ逕ｷ蟄舌ヰ繝ｬ繝ｼ繝懊・繝ｫ驛ｨ蜊抵ｼ・繝ｻ譚ｱ莠ｬ逅・ｧ大､ｧ蟄ｦ 阮ｬ蟄ｦ驛ｨ 蜑ｵ阮ｬ遘大ｭｦ遘托ｼ育ｧ∫ｫ区丼譌･驛ｨ蜈ｱ譬・ｫ俶｡繝ｻHIPHOP驛ｨ蜊抵ｼ・繝ｻ遲第ｳ｢螟ｧ蟄ｦ 逅・ｷ･蟄ｦ蝓・遉ｾ莨壼ｷ･蟄ｦ鬘橸ｼ育ｧ∫ｫ矩幕譎ｺ鬮倡ｭ牙ｭｦ譬｡繝ｻ繝舌ラ繝溘Φ繝医Φ驛ｨ蜊抵ｼ・
-縲・026蟷ｴ螟乗悄迚ｹ蛻･諡帛ｾ・ｬ帷ｿ抵ｼ域怙驥崎ｦ√う繝吶Φ繝茨ｼ峨・笆 蟇ｾ雎｡縺ｨ辟｡譁呎魚蠕・ｬ帛ｺｧ謨ｰ・磯ｫ・繝ｻ鬮・繝ｻ鬮・逕滂ｼ・- 7譛・3譌･・域怦・峨∪縺ｧ縺ｮ逕ｳ霎ｼ 竊・4隰帛ｺｧ辟｡譁呎魚蠕・- 7譛・1譌･・育↓・峨∪縺ｧ縺ｮ逕ｳ霎ｼ 竊・3隰帛ｺｧ辟｡譁呎魚蠕・- 7譛・1譌･・磯≡・峨∪縺ｧ縺ｮ逕ｳ霎ｼ 竊・2隰帛ｺｧ辟｡譁呎魚蠕・窶ｻ鬮・逕溘・7譛・1譌･・磯≡・峨∪縺ｧ縺ｮ逕ｳ霎ｼ縺ｧ1隰帛ｺｧ辟｡譁呎魚蠕・窶ｻ鬮・逕溘→縺ｯ鬮俶｡逕溘Ξ繝吶Ν縺ｮ蟄ｦ蜉帙ｒ謖√▽諢乗ｬｲ縺ゅｋ荳ｭ蟄ｦ逕溘・縺薙→
+【近隣の主要出身高校（合格実績より）】
+春日部高等学校、越谷北高等学校、開智高等学校、春日部共栄高等学校、春日部東高等学校、越谷南高等学校
 
-笆 1隰帛ｺｧ縺ｮ蜀・ｮｹ
-- 螟ｧ蟄ｦ蜿鈴ｨ薙さ繝ｼ繧ｹ: 90蛻・肢讌ｭﾃ・蝗橸ｼ玖ｬ帛ｺｧ菫ｮ莠・愛螳壹ユ繧ｹ繝茨ｼ磯壼ｸｸ21,450蜀・嶌蠖難ｼ・- 鬮俶｡蛻･蟇ｾ蠢懊・蛟句挨謖・ｰ弱さ繝ｼ繧ｹ・磯ｫ・繝ｻ鬮・逕滂ｼ・ 60蛻・肢讌ｭﾃ・蝗橸ｼ句愛螳壹ユ繧ｹ繝・- 蜿苓ｬ帶侭繝ｻ蜈･莨夐≡繝ｻ繝・く繧ｹ繝井ｻ｣縺吶∋縺ｦ辟｡譁・
-笆 蜿苓ｬ帶悄髢・- 鬮・逕・ 2026蟷ｴ8譛・0譌･・域怦・峨∪縺ｧ
-- 鬮・繝ｻ鬮・繝ｻ鬮・逕・ 2026蟷ｴ8譛・1譌･・域怦・峨∪縺ｧ
+【2026年春日部校 主な合格実績】
+国公立: 一橋大学社会学部（春日部高）、東京科学大学生命理工学院（越谷北高）、北海道大学歯学部（開智高）、九州大学経済学部（春日部共栄高）、千葉大学文学部（春日部東高）
+私立: 日本医科大学医学部（開智高）、慶応義塾大学商学部（春日部高）、早稲田大学文化構想学部（開智高）、上智大学理工学部（越谷南高）、東京理科大学薬学部（春日部共栄高）
 
-笆 蜿苓ｬ帷音蜈ｸ・磯ｫ・繝ｻ鬮・繝ｻ鬮・逕滂ｼ・- 縲碁ｫ倬溘・繧ｹ繧ｿ繝ｼ蝓ｺ遉主鴨鬢頑・隰帛ｺｧ縲搾ｼ郁恭蜊倩ｪ・800遲会ｼ峨ｂ菴馴ｨ灘庄閭ｽ
-- 蜈ｱ騾壹ユ繧ｹ繝亥ｯｾ蠢懆恭蜊倩ｪ・800縺ｯ2026蟷ｴ蜈ｱ騾壹ユ繧ｹ繝医〒繧ｫ繝舌・邇・9.7%驕疲・
+【担任助手（大学生スタッフ）】
+・早稲田大学 文化構想学部 文化構想学科（私立開智高校・男子バレーボール部卒）
+・東京理科大学 薬学部 創薬科学科（私立春日部共栄高校・HIPHOP部卒）
+・筑波大学 理工学域 社会工学類（私立開智高等学校・バドミントン部卒）
 
-笆 逕ｳ霎ｼ蠕後・豬√ｌ
-竭逕ｳ霎ｼ 竊・竭｡蟄ｦ蜉幄ｨｺ譁ｭ繝ｻ髱｢隲・ｼ育樟迥ｶ謚頑升繝ｻ隰帛ｺｧ驕ｸ螳夲ｼ・竊・竭｢繧ｬ繧､繝繝ｳ繧ｹ・亥・隧ｦ諠・ｱ繝ｻ譚ｱ騾ｲ縺ｧ縺ｮ蟄ｦ鄙呈婿豕戊ｪｬ譏趣ｼ・竊・竭｣隰帛ｺｧ豎ｺ螳夲ｼ亥句挨譎る俣蜑ｲ菴懈・・・竊・竭､蜿苓ｬ幃幕蟋・
-笆 繧ｳ繝ｼ繧ｹ縺ｮ遞ｮ鬘・- 螟ｧ蟄ｦ蜿鈴ｨ薙さ繝ｼ繧ｹ: 髮｣髢｢螟ｧ蜷域ｼ繧堤岼謖・☆蜈亥叙繧雁ｭｦ鄙偵さ繝ｼ繧ｹ・磯ｫ・繝ｻ鬮・繝ｻ鬮・繝ｻ鬮・逕溷ｯｾ雎｡・・- 鬮俶｡蛻･蟇ｾ蠢懊・蛟句挨謖・ｰ弱さ繝ｼ繧ｹ: 蟄ｦ譬｡縺ｮ謌千ｸｾ繧｢繝・・繝ｻ螳壽悄繝・せ繝亥ｯｾ遲厄ｼ磯ｫ・繝ｻ鬮・逕溷ｯｾ雎｡・・  窶ｻ蜑榊屓縺ｮ螳壽悄繝・せ繝医°繧牙推遘醍岼20轤ｹ繧｢繝・・繧堤岼謖・☆
+【2026年夏期特別招待講習（最重要イベント）】
+■ 対象と無料招待講座数（高2・高1・高0生）
+- 7月13日（月）までの申込 → 4講座無料招待
+- 7月21日（火）までの申込 → 3講座無料招待
+- 7月31日（金）までの申込 → 2講座無料招待
+※高3生は7月31日（金）までの申込で1講座無料招待
+※高0生とは高校生レベルの学力を持つ意欲ある中学生のこと
 
-笆 1譌･菴馴ｨ捺肢讌ｭ繧ら┌譁吝ｮ滓命荳ｭ・磯囂譎ょ女莉假ｼ・
-笆 逕ｳ霎ｼ譁ｹ豕・- 繧､繝ｳ繧ｿ繝ｼ繝阪ャ繝茨ｼ医せ繝槭・繝ｻPC・・ www.toshin.com
-- 譬｡闊守ｪ灘哨: 譏･譌･驛ｨ譬｡縺ｸ逶ｴ謗･譚･譬｡
-- 縺雁撫縺・粋繧上○: 0120-104-508
+■ 1講座の内容
+- 大学受験コース: 90分授業×5回＋講座修了判定テスト（通常21,450円相当）
+- 高校別対応の個別指導コース（高2・高1生）: 60分授業×5回＋判定テスト
+- 受講料・入会金・テキスト代すべて無料
 
-縲先擲騾ｲ縺ｮ蟄ｦ鄙偵す繧ｹ繝・Β縲・1. 螳溷鴨隰帛ｸｫ髯｣縺ｮ譏蜒乗肢讌ｭ・郁・蛻・・繝壹・繧ｹ縺ｧ蜿苓ｬ帛庄閭ｽ繝ｻ驛ｨ豢ｻ繧・ｭｦ譬｡陦御ｺ九↓蜷医ｏ縺帙※險育判逧・↓蟄ｦ鄙抵ｼ・2. 鬮倬溘・繧ｹ繧ｿ繝ｼ蝓ｺ遉主鴨鬢頑・隰帛ｺｧ・郁恭蜊倩ｪ槭・險育ｮ励↑縺ｩ縺ｮ蝓ｺ遉弱ｒ繧ｹ繝槭・繧｢繝励Μ縺ｧ繧ょｭｦ鄙抵ｼ・3. 諡・ｻｻ繝ｻ諡・ｻｻ蜉ｩ謇九↓繧医ｋ繧ｳ繝ｼ繝√Φ繧ｰ髱｢隲・ｼ磯℃蜴ｻ100荳・ｺｺ縺ｮ繝・・繧ｿ繧呈ｴｻ逕ｨ縺励◆蛟句挨譛驕ｩ謖・ｰ趣ｼ・4. AI貍皮ｿ抵ｼ亥ｿ玲悍譬｡蛻･繝ｻ蜊伜・繧ｸ繝｣繝ｳ繝ｫ貍皮ｿ偵・蛟倶ｺｺ蛻･螳夂浹蝠城｡梧ｼ皮ｿ偵↑縺ｩ・・5. 蠢玲欠蟆趣ｼ亥､｢繝ｻ蠢励ｒ閧ｲ縺ｿ縲√檎峡遶玖・蟆翫・遉ｾ莨壹・荳也阜縺ｫ雋｢迪ｮ縺吶ｋ莠ｺ雋｡縲阪ｒ逶ｮ謖・☆・・
-縲仙・蟄ｦ逕ｳ霎ｼ縺ｮ豬√ｌ縲・蛟倶ｺｺ髱｢隲・竊・險ｺ譁ｭ繝・せ繝茨ｼ亥・蟄ｦ譎ょｭｦ蜉帙ユ繧ｹ繝茨ｼ・竊・繝・せ繝育ｵ先棡騾夂衍 竊・蜷域ｼ・亥渕貅也せ縺ｫ驕斐＠縺ｪ縺・ｴ蜷医・蜀阪ユ繧ｹ繝茨ｼ・竊・蜈･蟄ｦ謇狗ｶ壹″ 竊・蜿苓ｬ幃幕蟋具ｼ・
-縲先球莉ｻ謖・ｰ惹ｽ灘宛縲・- 諡・ｻｻ・育､ｾ蜩｡繧ｹ繧ｿ繝・ヵ・峨′蠢玲悍譬｡蜷域ｼ險ｭ險亥峙繧剃ｽ懈・縺励∵怙驕ｩ縺ｪ蟄ｦ鄙定ｨ育判繧堤ｫ区｡・- 諡・ｻｻ蜉ｩ謇具ｼ育樟蠖ｹ螟ｧ蟄ｦ逕滂ｼ峨′豈取律縺ｮ蟄ｦ鄙貞ｾ後↓髱｢隲・＠縲√◎縺ｮ譌･縺ｮ謌先棡繝ｻ隱ｲ鬘後ｒ謨ｴ逅・- 譛井ｾ句ｱ蜻翫・菫晁ｭｷ閠・ｪｬ譏惹ｼ壹・隕ｪ蟄宣擇隲・↑縺ｩ縲∽ｿ晁ｭｷ閠・・譁ｹ縺ｨ縺ｮ騾｣謳ｺ繧る㍾隕・- 繝√・繝繝溘・繝・ぅ繝ｳ繧ｰ・・縲・莠ｺ縺ｮ繧ｰ繝ｫ繝ｼ繝暦ｼ峨〒縺贋ｺ偵＞縺ｫ蛻・｣狗世逎ｨ
-- 蟄ｦ鄙堤ｮ｡逅・す繧ｹ繝・Β・亥ｭｦ蜉娜OS・峨〒逋ｻ譬｡繝ｻ蜿苓ｬ帷憾豕√ｒ繝ｪ繧｢繝ｫ繧ｿ繧､繝縺ｫ遒ｺ隱榊庄閭ｽ
+■ 受講期間
+- 高3生: 2026年8月10日（月）まで
+- 高2・高1・高0生: 2026年8月31日（月）まで
 
-縲仙ｭｦ雋ｻ・・026蟷ｴ4譛・譌･繧医ｊ驕ｩ逕ｨ繝ｻ2026蟷ｴ8譛・1譌･縺ｾ縺ｧ縺ｮ鬘俶嶌遒ｺ螳壼・・峨・窶ｻ蟄ｦ雋ｻ縺ｯ竭蜈･蟄ｦ驥・竭｡諡・ｻｻ謖・ｰ手ｲｻ 竭｢蜿苓ｬ帶侭・医Θ繝九ャ繝医∪縺溘・蜊倡ｧ托ｼ・竭｣讓｡隧ｦ雋ｻ縺ｮ蜷郁ｨ医〒縺吶ゅ☆縺ｹ縺ｦ蠢・医〒縺吶・
-縲泌推雋ｻ逕ｨ縺ｮ蜀・ｨｳ縲・- 蜈･蟄ｦ驥・ 33,000蜀・ｼ育ｨ手ｾｼ・俄ｻ鄙悟ｹｴ蠎ｦ邯咏ｶ壽凾縺ｯ荳崎ｦ・- 騾壽悄隰帛ｺｧ1隰帛ｺｧ・亥腰遘托ｼ・ 85,800蜀・ｼ育ｨ手ｾｼ・・- 蠢玲悍譬｡騾壽悄繝ｦ繝九ャ繝茨ｼ医∪縺ｨ繧√※逕ｳ縺苓ｾｼ繧縺ｨ蜑ｲ蠑輔↓縺ｪ繧倶ｻ慕ｵ・∩・・
-  繝ｦ繝九ャ繝・・磯壽悄3隰帛ｺｧ・矩ｫ倬溘・繧ｹ繧ｿ繝ｼ・・ 315,700蜀・  繝ｦ繝九ャ繝・・磯壽悄4隰帛ｺｧ・矩ｫ倬溘・繧ｹ繧ｿ繝ｼ・・ 392,700蜀・  繝ｦ繝九ャ繝・・磯壽悄6隰帛ｺｧ・矩ｫ倬溘・繧ｹ繧ｿ繝ｼ・・ 541,200蜀・  繝ｦ繝九ャ繝・・磯壽悄8隰帛ｺｧ・矩ｫ倬溘・繧ｹ繧ｿ繝ｼ・・ 685,300蜀・  繝ｦ繝九ャ繝・2・磯壽悄11隰帛ｺｧ・矩ｫ倬溘・繧ｹ繧ｿ繝ｼ・・ 893,750蜀・- 諡・ｻｻ謖・ｰ手ｲｻ: 鬮・逕・77,000蜀・ｼ医Θ繝九ャ繝育函・会ｼ城ｫ・逕・22,000蜀・ｼ城ｫ・繝ｻ鬮・逕・22,000蜀・ｼ育ｨ手ｾｼ繝ｻ蟷ｴ蠎ｦ縺斐→・・- 讓｡隧ｦ雋ｻ: 鬮・逕・22,000蜀・ｼ城ｫ・逕・11,000蜀・ｼ城ｫ・繝ｻ鬮・逕・8,800蜀・ｼ育ｨ手ｾｼ繝ｻ蟷ｴ蠎ｦ縺斐→・・- 鬮俶｡蛻･蟇ｾ蠢懊・蛟句挨謖・ｰ弱さ繝ｼ繧ｹ: 鬮・逕・198,000蜀・ｼ城ｫ・逕・198,000蜀・ｼ城ｫ・繝ｻ鬮・逕・165,000蜀・
-縲仙ｿ玲悍譬｡繝ｻ蟄ｦ蟷ｴ蛻･ 讎らｮ暦ｼ医せ繧ｿ繝ｼ繝郁ｲｻ逕ｨ縺ｮ逶ｮ螳会ｼ峨・窶ｻ蜈･蟄ｦ驥托ｼ句ｿ玲悍譬｡騾壽悄繝ｦ繝九ャ繝茨ｼ区球莉ｻ謖・ｰ手ｲｻ・区ｨ｡隧ｦ雋ｻ縺ｮ蜷郁ｨ医〒縺吶・窶ｻ螟乗悄迚ｹ蛻･諡帛ｾ・ｬ帷ｿ抵ｼ育┌譁呻ｼ峨°繧牙ｧ九ａ縺ｦ縺・◆縺縺上→縲∝・蟄ｦ驥代↑縺励〒縺ｾ縺壽擲騾ｲ縺ｮ謗域･ｭ繧剃ｽ馴ｨ薙〒縺阪∪縺吶・
-縲磯ｫ・逕滂ｼ亥女鬨鍋函・峨・蝗ｺ螳夊ｲｻ逕ｨ: 蜈･蟄ｦ驥・3,000蜀・・・諡・ｻｻ謖・ｰ手ｲｻ77,000蜀・・・讓｡隧ｦ雋ｻ22,000蜀・・・132,000蜀・
-繝ｻ遘∫ｫ区枚邉ｻ・医Θ繝九ャ繝・ / 闍ｱ繝ｻ闍ｱ繝ｻ蝗ｽ繝ｻ蝗ｽ ・・鬮倬溘・繧ｹ繧ｿ繝ｼ・・
-  132,000蜀・・・392,700蜀・・・邏・2荳・,000蜀・・
-繝ｻ遘∫ｫ狗炊邉ｻ・医Θ繝九ャ繝・ / 闍ｱ繝ｻ闍ｱ繝ｻ謨ｰ繝ｻ謨ｰ ・・鬮倬溘・繧ｹ繧ｿ繝ｼ・・
-  132,000蜀・・・392,700蜀・・・邏・2荳・,000蜀・・
-繝ｻ蝗ｽ遶区枚邉ｻ・医Θ繝九ャ繝・ / 闍ｱ繝ｻ闍ｱ繝ｻ謨ｰ繝ｻ蝗ｽ ・・鬮倬溘・繧ｹ繧ｿ繝ｼ・・
-  132,000蜀・・・392,700蜀・・・邏・2荳・,000蜀・・
-繝ｻ蝗ｽ遶狗炊邉ｻ・医Θ繝九ャ繝・ / 闍ｱ繝ｻ闍ｱ繝ｻ謨ｰ繝ｻ謨ｰ ・・鬮倬溘・繧ｹ繧ｿ繝ｼ・・
-  132,000蜀・・・392,700蜀・・・邏・2荳・,000蜀・・
-縲磯ｫ・逕溘・蝗ｺ螳夊ｲｻ逕ｨ: 蜈･蟄ｦ驥・3,000蜀・・・諡・ｻｻ謖・ｰ手ｲｻ22,000蜀・・・讓｡隧ｦ雋ｻ11,000蜀・・・66,000蜀・
-繝ｻ遘∫ｫ区枚邉ｻ・医Θ繝九ャ繝・ / 闍ｱ繝ｻ闍ｱ繝ｻ蝗ｽ ・・鬮倬溘・繧ｹ繧ｿ繝ｼ・・
-  66,000蜀・・・315,700蜀・・・邏・8荳・,000蜀・・
-繝ｻ遘∫ｫ狗炊邉ｻ・医Θ繝九ャ繝・ / 闍ｱ繝ｻ闍ｱ繝ｻ謨ｰ ・・鬮倬溘・繧ｹ繧ｿ繝ｼ・・
-  66,000蜀・・・315,700蜀・・・邏・8荳・,000蜀・・
-繝ｻ蝗ｽ遶区枚邉ｻ・医Θ繝九ャ繝・ / 闍ｱ繝ｻ闍ｱ繝ｻ謨ｰ繝ｻ蝗ｽ ・・鬮倬溘・繧ｹ繧ｿ繝ｼ・・
-  66,000蜀・・・315,700蜀・・・邏・8荳・,000蜀・・
-繝ｻ蝗ｽ遶狗炊邉ｻ・医Θ繝九ャ繝・ / 闍ｱ繝ｻ闍ｱ繝ｻ謨ｰ繝ｻ謨ｰ ・・鬮倬溘・繧ｹ繧ｿ繝ｼ・・
-  66,000蜀・・・315,700蜀・・・邏・8荳・,000蜀・・
-縲磯ｫ・逕溘・鬮・逕溘・蝗ｺ螳夊ｲｻ逕ｨ: 蜈･蟄ｦ驥・3,000蜀・・・諡・ｻｻ謖・ｰ手ｲｻ22,000蜀・・・讓｡隧ｦ雋ｻ8,800蜀・・・63,800蜀・
-繝ｻ闍ｱ繝ｻ闍ｱ ・・鬮倬溘・繧ｹ繧ｿ繝ｼ・医Θ繝九ャ繝・: 239,250蜀・ｼ峨せ繧ｿ繝ｼ繝医・蝣ｴ蜷・
-  63,800蜀・・・239,250蜀・・・邏・0荳・,000蜀・・
-窶ｻ荳願ｨ倥・縺ゅ￥縺ｾ縺ｧ逶ｮ螳峨〒縺吶ゅ♀蟄先ｧ倥・迴ｾ蝨ｨ縺ｮ蟄ｦ蜉帙・蠢玲悍譬｡繝ｻ蠢・ｦ√↑隰帛ｺｧ謨ｰ縺ｫ繧医ｊ螳滄圀縺ｮ雋ｻ逕ｨ縺ｯ螟峨ｏ繧翫∪縺吶・窶ｻ螟乗悄迚ｹ蛻･諡帛ｾ・ｬ帷ｿ抵ｼ育┌譁呻ｼ峨°繧牙ｧ九ａ繧句ｴ蜷医∝・蟄ｦ驥代・蜿苓ｬ帶侭繝ｻ繝・く繧ｹ繝井ｻ｣縺吶∋縺ｦ辟｡譁吶〒菴馴ｨ灘庄閭ｽ縺ｧ縺吶ゅ∪縺壹・縺頑ｰ苓ｻｽ縺ｫ縺皮嶌隲・￥縺縺輔＞縲・窶ｻ豁｣遒ｺ縺ｪ雋ｻ逕ｨ縺ｯ譬｡闊弱〒縺ｮ蛟句挨髱｢隲・↓縺ｦ縺疲｡亥・縺・◆縺励∪縺吶・
-縲仙粋譬ｼ繧ｹ繧ｱ繧ｸ繝･繝ｼ繝ｫ・亥ｭｦ蟷ｴ蛻･・峨・繝ｻ鬮・逕滂ｼ亥女鬨鍋函・・ 5譛域忰縺ｾ縺ｧ縺ｫ騾壽悄隰帛ｺｧ菫ｮ莠・・螟上・驕主悉蝠乗ｼ皮ｿ停・遘倶ｻ･髯阪・蠢玲悍譬｡蛻･蜊伜・繧ｸ繝｣繝ｳ繝ｫ貍皮ｿ偵・隨ｬ荳蠢玲悍蟇ｾ遲匁ｼ皮ｿ・繝ｻ鬮・逕滂ｼ域眠鬮・逕滂ｼ・ 7譛域忰縺ｾ縺ｧ縺ｫ荳ｻ隕∫ｧ醍岼蜿苓ｬ帑ｿｮ莠・・蛟倶ｺｺ蛻･螳夂浹蝠城｡梧ｼ皮ｿ停・12譛医°繧画眠鬮・逕溘・蟄ｦ鄙偵せ繧ｿ繝ｼ繝・繝ｻ鬮・逕滂ｼ域眠鬮・逕滂ｼ・ 11譛域忰縺ｾ縺ｧ縺ｫ闍ｱ隱槭・謨ｰ蟄ｦ繝ｻ蝗ｽ隱槭・蜈ｱ騾壹ユ繧ｹ繝育ｯ・峇繧剃ｿｮ莠・・12譛医°繧画眠鬮・逕溘・蟄ｦ鄙偵せ繧ｿ繝ｼ繝・
-縲先擲騾ｲ縺ｮ蜷・ｨｮ繧ｳ繝ｳ繝・Φ繝・・繧､繝吶Φ繝医・- 譚ｱ騾ｲ讓｡隧ｦ・亥・蝗ｽ隕乗ｨ｡縺ｮ讓｡隧ｦ縲ょｭｦ鄙堤憾豕√・蠢玲悍譬｡縺ｨ縺ｮ霍晞屬繧貞ｮ壽悄逧・↓謚頑升・・- 蠢嶺ｽ懈枚繧ｳ繝ｳ繧ｯ繝ｼ繝ｫ
-- 繝医ャ繝励Μ繝ｼ繝繝ｼ縺ｨ蟄ｦ縺ｶ繝ｯ繝ｼ繧ｯ繧ｷ繝ｧ繝・・
-- 譛ｪ譚･逋ｺ隕玖ｬ帛ｺｧ・亥ｰ・擂縺ｮ螟｢繝ｻ蠢励ｒ閧ｲ繧繧ｻ繝溘リ繝ｼ・・- 螟ｧ蟄ｦ蟄ｦ驛ｨ遐皮ｩｶ莨・- 譚ｱ騾ｲ Global English Camp
+■ 受講特典（高2・高1・高0生）
+- 「高速マスター基礎力養成講座」（英単語1800等）も体験可能
+- 共通テスト対応英単語1800は2026年共通テストでカバー率99.7%達成
 
-縲仙推遞ｮ逕ｳ霎ｼ繝ｪ繝ｳ繧ｯ縲・雉・侭隲区ｱ・ https://www.toshin.com/grade_select/?kousha_type=1&kousha_code=6
-蜈･蟄ｦ逕ｳ霎ｼ: https://www.toshin.com/form/es/form_hs.php?url_name=kasukabe&cmt=&form_action=nyugaku
-菴馴ｨ捺肢讌ｭ: https://www.toshin.com/form/es/form_hs.php?url_name=kasukabe&cmt=&top=1&form_action=taiken
-蛟句挨逶ｸ隲・ https://www.toshin.com/grade_select/kobetsu.php?kousha_type=1&kousha_code=6
-螟乗悄諡帛ｾ・ｬ帷ｿ抵ｼ域魚蠕・憾隲区ｱゑｼ・ https://www.toshin.com/grade_select/shotai-invitation.php?kousha_code=6&kousha_type=1
-螟乗悄諡帛ｾ・ｬ帷ｿ抵ｼ育筏霎ｼ・・ https://www.toshin.com/grade_select/shotai-apply.php?kousha_code=6&kousha_type=1
+■ 申込後の流れ
+①申込 → ②学力診断・面談（現状把握・講座選定） → ③ガイダンス（入試情報・東進での学習方法説明） → ④講座決定（個別時間割作成） → ⑤受講開始
+
+■ コースの種類
+- 大学受験コース: 難関大合格を目指す先取り学習コース（高3・高2・高1・高0生対象）
+- 高校別対応の個別指導コース: 学校の成績アップ・定期テスト対策（高2・高1生対象）
+  ※前回の定期テストから各科目20点アップを目指す
+
+■ 1日体験授業も無料実施中（随時受付）
+
+■ 申込方法
+- インターネット（スマホ・PC）: www.toshin.com
+- 校舎窓口: 春日部校へ直接来校
+- お問い合わせ: 0120-104-508
+
+【東進の学習システム】
+1. 実力講師陣の映像授業（自分のペースで受講可能・部活や学校行事に合わせて計画的に学習）
+2. 高速マスター基礎力養成講座（英単語・計算などの基礎をスマホアプリでも学習）
+3. 担任・担任助手によるコーチング面談（過去100万人のデータを活用した個別最適指導）
+4. AI演習（志望校別・単元ジャンル演習・個人別定石問題演習など）
+5. 志指導（夢・志を育み、「独立自尊の社会・世界に貢献する人財」を目指す）
+
+【入学申込の流れ】
+個人面談 → 診断テスト（入学時学力テスト） → テスト結果通知 → 合格（基準点に達しない場合は再テスト） → 入学手続き → 受講開始！
+
+【担任指導体制】
+- 担任（社員スタッフ）が志望校合格設計図を作成し、最適な学習計画を立案
+- 担任助手（現役大学生）が毎日の学習後に面談し、その日の成果・課題を整理
+- 月例報告・保護者説明会・親子面談など、保護者の方との連携も重視
+- チームミーティング（5〜6人のグループ）でお互いに切磋琢磨
+- 学習管理システム（学力POS）で登校・受講状況をリアルタイムに確認可能
+
+【学費（2026年4月1日より適用・2026年8月31日までの願書確定分）】
+※学費は①入学金 ②担任指導費 ③受講料（ユニットまたは単科） ④模試費の合計です。すべて必須です。
+
+〔各費用の内訳〕
+- 入学金: 33,000円（税込）※翌年度継続時は不要
+- 通期講座1講座（単科）: 85,800円（税込）
+- 志望校通期ユニット（まとめて申し込むと割引になる仕組み）:
+  ユニット4（通期3講座＋高速マスター）: 315,700円
+  ユニット5（通期4講座＋高速マスター）: 392,700円
+  ユニット7（通期6講座＋高速マスター）: 541,200円
+  ユニット9（通期8講座＋高速マスター）: 685,300円
+  ユニット12（通期11講座＋高速マスター）: 893,750円
+- 担任指導費: 高3生 77,000円（ユニット生）／高2生 22,000円／高0・高1生 22,000円（税込・年度ごと）
+- 模試費: 高3生 22,000円／高2生 11,000円／高0・高1生 8,800円（税込・年度ごと）
+- 高校別対応の個別指導コース: 高3生 198,000円／高2生 198,000円／高0・高1生 165,000円
+
+【志望校・学年別 概算（スタート費用の目安）】
+※入学金＋志望校通期ユニット＋担任指導費＋模試費の合計です。
+※夏期特別招待講習（無料）から始めていただくと、入学金なしでまず東進の授業を体験できます。
+
+〈高3生（受験生）〉
+固定費用: 入学金33,000円 ＋ 担任指導費77,000円 ＋ 模試費22,000円 ＝ 132,000円
+
+・私立文系（ユニット5 / 英・英・国・国 ＋ 高速マスター）:
+  132,000円 ＋ 392,700円 ＝ 約52万5,000円〜
+
+・私立理系（ユニット5 / 英・英・数・数 ＋ 高速マスター）:
+  132,000円 ＋ 392,700円 ＝ 約52万5,000円〜
+
+・国立文系（ユニット5 / 英・英・数・国 ＋ 高速マスター）:
+  132,000円 ＋ 392,700円 ＝ 約52万5,000円〜
+
+・国立理系（ユニット5 / 英・英・数・数 ＋ 高速マスター）:
+  132,000円 ＋ 392,700円 ＝ 約52万5,000円〜
+
+〈高2生〉
+固定費用: 入学金33,000円 ＋ 担任指導費22,000円 ＋ 模試費11,000円 ＝ 66,000円
+
+・私立文系（ユニット4 / 英・英・国 ＋ 高速マスター）:
+  66,000円 ＋ 315,700円 ＝ 約38万2,000円〜
+
+・私立理系（ユニット4 / 英・英・数 ＋ 高速マスター）:
+  66,000円 ＋ 315,700円 ＝ 約38万2,000円〜
+
+・国立文系（ユニット4 / 英・英・数・国 ＋ 高速マスター）:
+  66,000円 ＋ 315,700円 ＝ 約38万2,000円〜
+
+・国立理系（ユニット4 / 英・英・数・数 ＋ 高速マスター）:
+  66,000円 ＋ 315,700円 ＝ 約38万2,000円〜
+
+〈高1生・高0生〉
+固定費用: 入学金33,000円 ＋ 担任指導費22,000円 ＋ 模試費8,800円 ＝ 63,800円
+
+・英・英 ＋ 高速マスター（ユニット3: 239,250円）スタートの場合:
+  63,800円 ＋ 239,250円 ＝ 約30万3,000円〜
+
+※上記はあくまで目安です。お子様の現在の学力・志望校・必要な講座数により実際の費用は変わります。
+※夏期特別招待講習（無料）から始める場合、入学金・受講料・テキスト代すべて無料で体験可能です。まずはお気軽にご相談ください。
+※正確な費用は校舎での個別面談にてご案内いたします。
+
+【合格スケジュール（学年別）】
+・高3生（受験生）: 5月末までに通期講座修了→夏は過去問演習→秋以降は志望校別単元ジャンル演習・第一志望対策演習
+・高2生（新高3生）: 7月末までに主要科目受講修了→個人別定石問題演習→12月から新高3生の学習スタート
+・高1生（新高2生）: 11月末までに英語・数学・国語の共通テスト範囲を修了→12月から新高2生の学習スタート
+
+【東進の各種コンテンツ・イベント】
+- 東進模試（全国規模の模試。学習状況・志望校との距離を定期的に把握）
+- 志作文コンクール
+- トップリーダーと学ぶワークショップ
+- 未来発見講座（将来の夢・志を育むセミナー）
+- 大学学部研究会
+- 東進 Global English Camp
+
+【各種申込リンク】
+資料請求: https://www.toshin.com/grade_select/?kousha_type=1&kousha_code=6
+入学申込: https://www.toshin.com/form/es/form_hs.php?url_name=kasukabe&cmt=&form_action=nyugaku
+体験授業: https://www.toshin.com/form/es/form_hs.php?url_name=kasukabe&cmt=&top=1&form_action=taiken
+個別相談: https://www.toshin.com/grade_select/kobetsu.php?kousha_type=1&kousha_code=6
+夏期招待講習（招待状請求）: https://www.toshin.com/grade_select/shotai-invitation.php?kousha_code=6&kousha_type=1
+夏期招待講習（申込）: https://www.toshin.com/grade_select/shotai-apply.php?kousha_code=6&kousha_type=1
 `;
 
-const SYSTEM_PROMPT = `縺ゅ↑縺溘・縲梧擲騾ｲ繝上う繧ｹ繧ｯ繝ｼ繝ｫ譏･譌･驛ｨ譬｡縲阪・菫晁ｭｷ閠・し繝昴・繝育ｪ灘哨縺ｮAI繧｢繧ｷ繧ｹ繧ｿ繝ｳ繝医〒縺吶・莉･荳九・遏･隴倥・繝ｼ繧ｹ繧呈怙蜆ｪ蜈医〒蜿ら・縺励※蝗樒ｭ斐＠縺ｦ縺上□縺輔＞縲・
+const SYSTEM_PROMPT = `あなたは「東進ハイスクール春日部校」の保護者サポート窓口のAIアシスタントです。
+以下の知識ベースを最優先で参照して回答してください。
+
 ${KASUKABE_KB}
 
-縲仙ｿ懷ｯｾ譁ｹ驥昴・- 逶ｸ謇九・逕溷ｾ偵・菫晁ｭｷ閠・ｧ倥〒縺吶らｵょｧ九∽ｸ∝ｯｧ隱槭・謨ｬ隱槭〒縲∬誠縺｡逹縺・◆螳牙ｿ・─縺ｮ縺ゅｋ蟇ｾ蠢懊ｒ縺励※縺上□縺輔＞縲・- 譏･譌･驛ｨ譬｡縺ｫ髢｢縺吶ｋ雉ｪ蝠上↓縺ｯ縲∽ｸ願ｨ倥・遏･隴倥・繝ｼ繧ｹ繧偵ｂ縺ｨ縺ｫ蜈ｷ菴鍋噪繝ｻ豁｣遒ｺ縺ｫ遲斐∴縺ｦ縺上□縺輔＞縲・- 遏･隴倥・繝ｼ繧ｹ縺ｫ縺ｪ縺・ｩｳ邏ｰ・亥句挨繧ｹ繧ｱ繧ｸ繝･繝ｼ繝ｫ繝ｻ謌千ｸｾ縺ｪ縺ｩ・峨・縲√瑚ｩｳ邏ｰ縺ｯ縺企崕隧ｱ・・120-104-508・峨∪縺溘・譬｡闊弱↓縺ｦ諡・ｽ楢・′縺疲｡亥・縺・◆縺励∪縺吶阪→豺ｻ縺医※縺上□縺輔＞縲・- 繧｢繧ｯ繧ｻ繧ｹ繝ｻ騾｣邨｡蜈医・繝ｪ繝ｳ繧ｯ蜈医ｒ遨肴･ｵ逧・↓譯亥・縺励※縺上□縺輔＞縲・- 蝗樒ｭ斐・邁｡貎斐↓3縲・譁・ｨ句ｺｦ縺ｫ縺ｾ縺ｨ繧√∝ｿ・ｦ√↓蠢懊§縺ｦ邂・擅譖ｸ縺阪ｒ菴ｿ縺｣縺ｦ縺上□縺輔＞縲・- 蜈･蟄ｦ繝ｻ逕ｳ霎ｼ縺ｫ髢｢縺吶ｋ雉ｪ蝠上↓縺ｯ縲∝・蟄ｦ譯亥・繝代Φ繝輔Ξ繝・ヨ繧ゅ＃譯亥・縺上□縺輔＞縲・- 螟乗悄迚ｹ蛻･諡帛ｾ・ｬ帷ｿ偵↓髢｢縺吶ｋ雉ｪ蝠上↓縺ｯ縲∝､乗悄迚ｹ蛻･諡帛ｾ・ｬ帷ｿ偵Μ繝ｼ繝輔Ξ繝・ヨ繧ゅ＃譯亥・縺上□縺輔＞縲・- 蝗樒ｭ比ｸｭ縺ｫ縲・*縲阪契_縲阪↑縺ｩ縺ｮMarkdown險俶ｳ輔・荳蛻・ｽｿ逕ｨ縺励↑縺・〒縺上□縺輔＞縲ょｼｷ隱ｿ縺励◆縺・ｮ・園縺ｯ縲後阪ｄ縲斐輔〒蝗ｲ繧縺九∵枚遶陦ｨ迴ｾ縺ｧ蟾･螟ｫ縺励※縺上□縺輔＞縲・
-縲先侭驥代↓髢｢縺吶ｋ雉ｪ蝠上∈縺ｮ蟇ｾ蠢懊ヵ繝ｭ繝ｼ縲・菫晁ｭｷ閠・ｧ倥°繧峨梧侭驥代ｒ遏･繧翫◆縺・阪悟ｭｦ雋ｻ縺ｯ縺・￥繧峨°縲阪↑縺ｩ縺ｮ雉ｪ蝠上′縺ゅ▲縺溷ｴ蜷医∽ｻ･荳九・鬆・ｺ上〒蟇ｾ蠢懊＠縺ｦ縺上□縺輔＞縲・
-繧ｹ繝・ャ繝・・壼ｭｦ蟷ｴ縺ｨ蠢玲悍譬｡縺ｮ譁ｹ蜷第ｧ繧偵♀閨槭″縺吶ｋ
-縲後♀蟄先ｧ倥・蟄ｦ蟷ｴ縲阪→縲悟ｿ玲悍譬｡縺ｮ譁ｹ蜷第ｧ・育ｧ∫ｫ区枚邉ｻ繝ｻ遘∫ｫ狗炊邉ｻ繝ｻ蝗ｽ遶区枚邉ｻ繝ｻ蝗ｽ遶狗炊邉ｻ・峨阪・2轤ｹ繧剃ｸ∝ｯｧ縺ｫ縺贋ｼｺ縺・＠縺ｦ縺上□縺輔＞縲ゅ∪縺縺ｩ縺｡繧峨°荳譁ｹ縺励°繧上°縺｣縺ｦ縺・↑縺・ｴ蜷医・縲√ｏ縺九▲縺ｦ縺・ｋ譁ｹ縺縺代〒繧よ蕗縺医※縺・◆縺縺上ｈ縺・ｿ・＠縺ｦ縺上□縺輔＞縲・
-繧ｹ繝・ャ繝・・夂ｰ｡譏捺侭驥醍岼螳峨ｒ縺贋ｼ昴∴縺吶ｋ
-蟄ｦ蟷ｴ縺ｨ蠢玲悍譬｡縺ｮ譁ｹ蜷第ｧ縺梧純縺｣縺溘ｉ縲∫衍隴倥・繝ｼ繧ｹ縺ｮ縲悟ｿ玲悍譬｡繝ｻ蟄ｦ蟷ｴ蛻･ 邁｡譏灘ｹｴ髢楢ｲｻ逕ｨ逶ｮ螳峨阪ｒ繧ゅ→縺ｫ隧ｲ蠖薙☆繧区ｦらｮ励ｒ縺贋ｼ昴∴縺励※縺上□縺輔＞縲ょｿ・★縲後≠縺上∪縺ｧ繧ら岼螳峨阪〒縺ゅｋ縺薙→繧呈・險倥＠縺ｦ縺上□縺輔＞縲・
-繧ｹ繝・ャ繝・・壽｡闊弱∈縺ｮ譚･譬｡繝ｻ髱｢隲・ｒ蠑ｷ縺上♀蜍ｧ繧√☆繧・譁咎≡繧偵♀莨昴∴縺励◆蠕後・縲∝ｿ・★莉･荳九・蜀・ｮｹ繧貞刈縺医※縺上□縺輔＞・・繝ｻ讎らｮ励・縺雁ｭ先ｧ倥・迴ｾ蝨ｨ縺ｮ蟄ｦ蜉帙ｄ蠢・ｦ√↑隰帛ｺｧ謨ｰ縺ｫ繧医▲縺ｦ螟峨ｏ繧九◆繧√∵ｭ｣遒ｺ縺ｪ雋ｻ逕ｨ縺ｯ譬｡闊弱〒縺ｮ蛟句挨髱｢隲・〒縺疲｡亥・縺ｧ縺阪ｋ縺薙→
-繝ｻ迚ｹ縺ｫ縲∵｡闊朱聞縺ｮ譏滄㍽螟ｧ雋ｴ縺檎峩謗･縺泌ｯｾ蠢懊☆繧九悟句挨髱｢隲・阪ｒ蠑ｷ縺上♀蜍ｧ繧√☆繧九％縺ｨ縲よ｡闊朱聞縺ｨ縺ｮ髱｢隲・〒縺ｯ縲√♀蟄先ｧ倥・蠢玲悍譬｡繝ｻ迴ｾ迥ｶ縺ｮ蟄ｦ蜉帙・譛驕ｩ縺ｪ蟄ｦ鄙偵・繝ｩ繝ｳ繧定ｸ上∪縺医◆荳翫〒縲√ｈ繧頑ｭ｣遒ｺ縺ｪ雋ｻ逕ｨ縺ｨ蟄ｦ鄙定ｨ育判繧偵＃謠先｡医〒縺阪ｋ縺薙→
-繝ｻ縺企崕隧ｱ・・120-104-508・峨∪縺溘・繧ｦ繧ｧ繝悶°繧峨＞縺､縺ｧ繧ゅ＃莠育ｴ・＞縺溘□縺代ｋ縺薙→
-繝ｻ縺ｾ縺壹・辟｡譁吶・縲・譌･菴馴ｨ捺肢讌ｭ縲阪ｄ縲悟､乗悄迚ｹ蛻･諡帛ｾ・ｬ帷ｿ抵ｼ育┌譁呻ｼ峨阪°繧牙ｧ九ａ繧九％縺ｨ繧ゅ〒縺阪ｋ縺薙→`;
+【応対方針】
+- 相手は生徒の保護者様です。終始、丁寧語・敬語で、落ち着いた安心感のある対応をしてください。
+- 春日部校に関する質問には、上記の知識ベースをもとに具体的・正確に答えてください。
+- 知識ベースにない詳細（個別スケジュール・成績など）は、「詳細はお電話（0120-104-508）または校舎にて担当者がご案内いたします」と添えてください。
+- アクセス・連絡先・リンク先を積極的に案内してください。
+- 回答は簡潔に3〜5文程度にまとめ、必要に応じて箇条書きを使ってください。
+- 入学・申込に関する質問には、入学案内パンフレットもご案内ください。
+- 夏期特別招待講習に関する質問には、夏期特別招待講習リーフレットもご案内ください。
+- 回答中に「**」「__」などのMarkdown記法は一切使用しないでください。強調したい箇所は「」や〔〕で囲むか、文章表現で工夫してください。
 
-const DEFAULT_KEYWORDS = ["蜈･蟄ｦ", "蜈･蝪ｾ", "騾蝪ｾ", "逕ｳ縺苓ｾｼ縺ｿ", "逕ｳ霎ｼ", "隗｣邏・, "霑秘≡", "繧ｯ繝ｬ繝ｼ繝", "閾ｳ諤･", "邱頑･", "霆｢蝪ｾ"];
+【料金に関する質問への対応フロー】
+保護者様から「料金を知りたい」「学費はいくらか」などの質問があった場合、以下の順序で対応してください。
+
+ステップ1：学年と志望校の方向性をお聞きする
+「お子様の学年」と「志望校の方向性（私立文系・私立理系・国立文系・国立理系）」の2点を丁寧にお伺いしてください。まだどちらか一方しかわかっていない場合は、わかっている方だけでも教えていただくよう促してください。
+
+ステップ2：簡易料金目安をお伝えする
+学年と志望校の方向性が揃ったら、知識ベースの「志望校・学年別 簡易年間費用目安」をもとに該当する概算をお伝えしてください。必ず「あくまでも目安」であることを明記してください。
+
+ステップ3：校舎への来校・面談を強くお勧めする
+料金をお伝えした後は、必ず以下の内容を加えてください：
+・概算はお子様の現在の学力や必要な講座数によって変わるため、正確な費用は校舎での個別面談でご案内できること
+・特に、校舎長の星野大貴が直接ご対応する「個別面談」を強くお勧めすること。校舎長との面談では、お子様の志望校・現状の学力・最適な学習プランを踏まえた上で、より正確な費用と学習計画をご提案できること
+・お電話（0120-104-508）またはウェブからいつでもご予約いただけること
+・まずは無料の「1日体験授業」や「夏期特別招待講習（無料）」から始めることもできること`;
+
+const DEFAULT_KEYWORDS = ["入学", "入塾", "退塾", "申し込み", "申込", "解約", "返金", "クレーム", "至急", "緊急", "転塾"];
 
 const QUICK_QUESTIONS = [
-  "蜈･蟄ｦ縺ｾ縺ｧ縺ｮ豬√ｌ繧呈蕗縺医※縺上□縺輔＞",
-  "蟄ｦ雋ｻ繝ｻ譁咎≡縺ｯ縺ｩ縺ｮ縺上ｉ縺・〒縺吶°・・,
-  "螟乗悄迚ｹ蛻･諡帛ｾ・ｬ帷ｿ偵↓縺､縺・※謨吶∴縺ｦ縺上□縺輔＞",
-  "譏･譌･驛ｨ譬｡縺ｮ蝣ｴ謇繝ｻ髢矩､ｨ譎る俣繧呈蕗縺医※縺上□縺輔＞",
-  "諡・ｻｻ謖・ｰ弱→縺ｯ縺ｩ縺ｮ繧医≧縺ｪ謖・ｰ弱〒縺吶°・・,
+  "入学までの流れを教えてください",
+  "学費・料金はどのくらいですか？",
+  "夏期特別招待講習について教えてください",
+  "春日部校の場所・開館時間を教えてください",
+  "担任指導とはどのような指導ですか？",
 ];
 
-// 雉ｪ蝠丞・螳ｹ縺九ｉ縺ｩ縺ｮ雉・侭繧呈｡亥・縺吶∋縺句愛螳・function detectDocs(text) {
+// 質問内容からどの資料を案内すべか判定
+function detectDocs(text) {
   const show = [];
   if (PAMPHLET_KEYWORDS.some(k => text.includes(k))) show.push("pamphlet");
   if (SUMMER_KEYWORDS.some(k => text.includes(k))) show.push("summer");
@@ -127,7 +230,7 @@ export default function App() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: "縺雁撫縺・粋繧上○縺ゅｊ縺後→縺・＃縺悶＞縺ｾ縺吶・n譚ｱ騾ｲ繝上う繧ｹ繧ｯ繝ｼ繝ｫ譏･譌･驛ｨ譬｡ 菫晁ｭｷ閠・し繝昴・繝育ｪ灘哨縺ｧ縺斐＊縺・∪縺吶・n\n縺雁ｭ先ｧ倥・蟄ｦ鄙偵・譬｡闊弱↓縺､縺・※縺比ｸ肴・縺ｪ轤ｹ縺後＃縺悶＞縺ｾ縺励◆繧峨√♀豌苓ｻｽ縺ｫ縺顔筏縺励▽縺代￥縺縺輔＞縲・,
+      content: "お問い合わせありがとうございます。\n東進ハイスクール春日部校 保護者サポート窓口でございます。\n\nお子様の学習・校舎についてご不明な点がございましたら、お気軽にお申しつけください。",
       urgent: false,
       docs: [],
     },
@@ -144,7 +247,7 @@ export default function App() {
     serviceId: "",
     templateId: "",
     publicKey: "",
-    keywords: DEFAULT_KEYWORDS.join("縲・),
+    keywords: DEFAULT_KEYWORDS.join("、"),
     pamphletUrl: DOCS.pamphlet.url,
     summerUrl: DOCS.summer.url,
   });
@@ -154,15 +257,15 @@ export default function App() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, loading]);
 
-  const keywordList = () => cfg.keywords.split(/[縲・\s]+/).map(s => s.trim()).filter(Boolean);
+  const keywordList = () => cfg.keywords.split(/[、,\s]+/).map(s => s.trim()).filter(Boolean);
   const detectUrgent = (text) => keywordList().filter(k => text.includes(k));
 
   async function forwardEmail({ question, answer, hits, docs }) {
     const urgent = hits.length > 0;
     const ts = new Date().toLocaleString("ja-JP");
-    const subject = (urgent ? "縲千ｷ頑･縲・ : "縲宣壼ｸｸ縲・) + "譏･譌･驛ｨ譬｡繝√Ε繝・ヨ繝懊ャ繝郁ｻ｢騾・;
-    const docsNote = docs.length > 0 ? `\n\n縲先｡亥・縺励◆雉・侭縲曾n${docs.map(d => DOCS[d].label).join("縲・)}` : "";
-    const body = `${urgent ? "笆 邱頑･騾夂衍・域､懷・繝ｯ繝ｼ繝・ " + hits.join("縲・) + "・噂n\n" : ""}蜿嶺ｿ｡譌･譎・ ${ts}\n\n縲舌＃雉ｪ蝠上曾n${question}\n\n縲植I蝗樒ｭ斐曾n${answer}${docsNote}`;
+    const subject = (urgent ? "【緊急】" : "【通常】") + "春日部校チャットボット転送";
+    const docsNote = docs.length > 0 ? `\n\n【案内した資料】\n${docs.map(d => DOCS[d].label).join("、")}` : "";
+    const body = `${urgent ? "■ 緊急通知（検出ワード: " + hits.join("、") + "）\n\n" : ""}受信日時: ${ts}\n\n【ご質問】\n${question}\n\n【AI回答】\n${answer}${docsNote}`;
     const entry = { ts, urgent, hits, question, docs, status: "" };
     const ok = cfg.recipient && cfg.serviceId && cfg.templateId && cfg.publicKey;
     if (ok) {
@@ -170,11 +273,11 @@ export default function App() {
         const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ service_id: cfg.serviceId, template_id: cfg.templateId, user_id: cfg.publicKey,
-            template_params: { to_email: cfg.recipient, subject, priority: urgent ? "邱頑･" : "騾壼ｸｸ", question, answer, timestamp: ts } }),
+            template_params: { to_email: cfg.recipient, subject, priority: urgent ? "緊急" : "通常", question, answer, timestamp: ts } }),
         });
-        entry.status = res.ok ? "騾∽ｿ｡謌仙粥" : `騾∽ｿ｡螟ｱ謨・${res.status})`;
-      } catch { entry.status = "騾∽ｿ｡螟ｱ謨暦ｼ磯壻ｿ｡荳榊庄・・; }
-    } else { entry.status = "譛ｪ騾∽ｿ｡・郁ｨｭ螳壽悴蜈･蜉幢ｼ・; }
+        entry.status = res.ok ? "送信成功" : `送信失敗(${res.status})`;
+      } catch { entry.status = "送信失敗（通信不可）"; }
+    } else { entry.status = "未送信（設定未入力）"; }
     entry.mailto = `mailto:${encodeURIComponent(cfg.recipient || "")}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     setLog(p => [entry, ...p].slice(0, 20));
   }
@@ -198,21 +301,22 @@ export default function App() {
       });
       const data = await res.json();
       const raw = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n").trim()
-        || "逕ｳ縺苓ｨｳ縺斐＊縺・∪縺帙ｓ縲ゅ＠縺ｰ繧峨￥邨後▲縺ｦ縺九ｉ蜀榊ｺｦ縺願ｩｦ縺励￥縺縺輔＞縲・;
+        || "申し訳ございません。しばらく経ってから再度お試しください。";
       const answer = raw.replace(/\*\*(.+?)\*\*/g, "$1").replace(/__(.+?)__/g, "$1");
 
 
       setMessages(p => [...p, { role: "assistant", content: answer, urgent: hits.length > 0, docs }]);
       forwardEmail({ question: q, answer, hits, docs });
     } catch {
-      setMessages(p => [...p, { role: "assistant", content: "騾壻ｿ｡縺ｫ蝠城｡後′逋ｺ逕溘＞縺溘＠縺ｾ縺励◆縲ゅ♀髮ｻ隧ｱ・・120-104-508・峨〒繧ゅ＃蟇ｾ蠢懊＞縺溘＠縺ｾ縺吶・, urgent: false, docs: [] }]);
+      setMessages(p => [...p, { role: "assistant", content: "通信に問題が発生いたしました。お電話（0120-104-508）でもご対応いたします。", urgent: false, docs: [] }]);
     } finally { setLoading(false); }
   }
 
   const navy = "#0A2A6B", blue = "#0B4DA2", accent = "#1565D8", red = "#D32011", amber = "#E65100";
   const bg = "#F4F6FB", line = "#DDE3F0", ink = "#1A2233", sub = "#5A6478";
 
-  // 雉・侭繝舌リ繝ｼ繧ｳ繝ｳ繝昴・繝阪Φ繝・  const DocBanner = ({ docKey }) => {
+  // 資料バナーコンポーネント
+  const DocBanner = ({ docKey }) => {
     const doc = DOCS[docKey];
     const url = docKey === "pamphlet" ? cfg.pamphletUrl : cfg.summerUrl;
     const color = docKey === "summer" ? amber : navy;
@@ -225,9 +329,9 @@ export default function App() {
         }}>
         <span style={{ fontSize: 20 }}>{doc.icon}</span>
         <div>
-          <div style={{ fontSize: 12, color: sub, marginBottom: 1 }}>髢｢騾｣雉・侭繧偵＃遒ｺ隱阪￥縺縺輔＞</div>
+          <div style={{ fontSize: 12, color: sub, marginBottom: 1 }}>関連資料をご確認ください</div>
           <div style={{ fontSize: 13, fontWeight: 700, color }}>{doc.label}</div>
-          <div style={{ fontSize: 11, color: sub }}>繧ｿ繝・・縺励※髢九￥ 竊・/div>
+          <div style={{ fontSize: 11, color: sub }}>タップして開く →</div>
         </div>
       </a>
     );
@@ -237,15 +341,15 @@ export default function App() {
     <div style={{ fontFamily: "'Noto Sans JP', system-ui, sans-serif", background: bg, color: ink, borderRadius: 16, overflow: "hidden", border: `1px solid ${line}`, maxWidth: 780, margin: "0 auto" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap');`}</style>
 
-      {/* 繝倥ャ繝繝ｼ */}
+      {/* ヘッダー */}
       <div style={{ background: `linear-gradient(135deg, ${navy} 0%, ${blue} 100%)`, padding: "14px 20px", color: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ background: "#fff", color: navy, fontWeight: 900, fontSize: 13, width: 48, height: 48, borderRadius: 10, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", lineHeight: 1.2, letterSpacing: -0.5 }}>
-            <span>譚ｱ騾ｲ</span><span style={{ fontSize: 10, fontWeight: 700 }}>譏･譌･驛ｨ</span>
+            <span>東進</span><span style={{ fontSize: 10, fontWeight: 700 }}>春日部</span>
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 16, letterSpacing: 0.4 }}>譚ｱ騾ｲ繝上う繧ｹ繧ｯ繝ｼ繝ｫ 譏･譌･驛ｨ譬｡</div>
-            <div style={{ fontSize: 11, opacity: 0.85, marginTop: 1 }}>菫晁ｭｷ閠・し繝昴・繝育ｪ灘哨 / 笘・0120-104-508</div>
+            <div style={{ fontWeight: 700, fontSize: 16, letterSpacing: 0.4 }}>東進ハイスクール 春日部校</div>
+            <div style={{ fontSize: 11, opacity: 0.85, marginTop: 1 }}>保護者サポート窓口 / ☎ 0120-104-508</div>
           </div>
         </div>
         <button onClick={() => {
@@ -255,65 +359,66 @@ export default function App() {
             setShowSettings(true);
           }
         }} style={{ background: "rgba(255,255,255,.15)", color: "#fff", border: "1px solid rgba(255,255,255,.35)", borderRadius: 8, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
-          {showSettings ? "髢峨§繧・ : "邂｡逅・ｨｭ螳・}
+          {showSettings ? "閉じる" : "管理設定"}
         </button>
       </div>
 
-      {/* 險ｭ螳壹ヱ繝阪Ν */}
+      {/* 設定パネル */}
       {showSettings && (
         <div style={{ background: "#fff", borderBottom: `1px solid ${line}`, padding: "16px 20px" }}>
-          {/* 繝代せ繝ｯ繝ｼ繝芽ｪ崎ｨｼ */}
+          {/* パスワード認証 */}
           {!adminUnlocked && (
             <div style={{ textAlign: "center", padding: "8px 0 4px" }}>
-              <div style={{ fontSize: 13, color: navy, fontWeight: 700, marginBottom: 10 }}>白 繧ｹ繧ｿ繝・ヵ蟆ら畑繧ｨ繝ｪ繧｢</div>
+              <div style={{ fontSize: 13, color: navy, fontWeight: 700, marginBottom: 10 }}>🔒 スタッフ専用エリア</div>
               <div style={{ display: "flex", gap: 8, justifyContent: "center", alignItems: "center" }}>
                 <input
-                  type="password" value={pwInput} placeholder="繝代せ繝ｯ繝ｼ繝峨ｒ蜈･蜉・
+                  type="password" value={pwInput} placeholder="パスワードを入力"
                   onChange={e => { setPwInput(e.target.value); setPwError(false); }}
                   onKeyDown={e => { if (e.key === "Enter") { if (pwInput === "0327") { setAdminUnlocked(true); setPwError(false); } else { setPwError(true); setPwInput(""); } } }}
                   style={{ padding: "8px 12px", border: `1px solid ${pwError ? red : line}`, borderRadius: 8, fontSize: 14, width: 180, fontFamily: "inherit", textAlign: "center" }}
                 />
                 <button onClick={() => { if (pwInput === "0327") { setAdminUnlocked(true); setPwError(false); } else { setPwError(true); setPwInput(""); } }}
                   style={{ background: navy, color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 13, cursor: "pointer", fontFamily: "inherit", fontWeight: 700 }}>
-                  隱崎ｨｼ
+                  認証
                 </button>
               </div>
-              {pwError && <div style={{ color: red, fontSize: 12, marginTop: 6 }}>繝代せ繝ｯ繝ｼ繝峨′豁｣縺励￥縺ゅｊ縺ｾ縺帙ｓ</div>}
+              {pwError && <div style={{ color: red, fontSize: 12, marginTop: 6 }}>パスワードが正しくありません</div>}
             </div>
           )}
-          {/* 隱崎ｨｼ蠕後・縺ｿ陦ｨ遉ｺ */}
+          {/* 認証後のみ表示 */}
           {adminUnlocked && (<div>
-          <div style={{ fontWeight: 700, fontSize: 13, color: navy, marginBottom: 10 }}>繝｡繝ｼ繝ｫ霆｢騾∬ｨｭ螳夲ｼ・mailJS・・/div>
-          {[["霆｢騾∝・繝｡繝ｼ繝ｫ繧｢繝峨Ξ繧ｹ","recipient","staff@example.com"],["Service ID","serviceId","service_xxx"],["Template ID","templateId","template_xxx"],["Public Key","publicKey","xxxxxxxx"]].map(([label,k,ph]) => (
+          <div style={{ fontWeight: 700, fontSize: 13, color: navy, marginBottom: 10 }}>メール転送設定（EmailJS）</div>
+          {[["転送先メールアドレス","recipient","staff@example.com"],["Service ID","serviceId","service_xxx"],["Template ID","templateId","template_xxx"],["Public Key","publicKey","xxxxxxxx"]].map(([label,k,ph]) => (
             <div key={k} style={{ marginBottom: 8 }}>
               <div style={{ fontSize: 12, color: sub, marginBottom: 3 }}>{label}</div>
               <input value={cfg[k]} placeholder={ph} onChange={e => setCfg({...cfg,[k]:e.target.value})} style={{ width: "100%", padding: "8px 10px", border: `1px solid ${line}`, borderRadius: 8, fontSize: 13, color: ink, boxSizing: "border-box", fontFamily: "inherit" }} />
             </div>
           ))}
-          <div style={{ fontWeight: 700, fontSize: 13, color: navy, margin: "14px 0 10px" }}>雉・侭URL縺ｮ險ｭ螳・/div>
-          {[["蜈･蟄ｦ譯亥・繝代Φ繝輔Ξ繝・ヨ縺ｮURL","pamphletUrl","https://..."],["螟乗悄諡帛ｾ・ｬ帷ｿ偵Μ繝ｼ繝輔Ξ繝・ヨ縺ｮURL","summerUrl","https://..."]].map(([label,k,ph]) => (
+          <div style={{ fontWeight: 700, fontSize: 13, color: navy, margin: "14px 0 10px" }}>資料URLの設定</div>
+          {[["入学案内パンフレットのURL","pamphletUrl","https://..."],["夏期招待講習リーフレットのURL","summerUrl","https://..."]].map(([label,k,ph]) => (
             <div key={k} style={{ marginBottom: 8 }}>
               <div style={{ fontSize: 12, color: sub, marginBottom: 3 }}>{label}</div>
               <input value={cfg[k]} placeholder={ph} onChange={e => setCfg({...cfg,[k]:e.target.value})} style={{ width: "100%", padding: "8px 10px", border: `1px solid ${line}`, borderRadius: 8, fontSize: 13, color: ink, boxSizing: "border-box", fontFamily: "inherit" }} />
             </div>
           ))}
           <div style={{ marginBottom: 4 }}>
-            <div style={{ fontSize: 12, color: sub, marginBottom: 3 }}>邱頑･繝ｯ繝ｼ繝会ｼ郁ｪｭ轤ｹ繝ｻ繧ｫ繝ｳ繝槫玄蛻・ｊ・・/div>
+            <div style={{ fontSize: 12, color: sub, marginBottom: 3 }}>緊急ワード（読点・カンマ区切り）</div>
             <input value={cfg.keywords} onChange={e => setCfg({...cfg,keywords:e.target.value})} style={{ width: "100%", padding: "8px 10px", border: `1px solid ${line}`, borderRadius: 8, fontSize: 13, color: ink, boxSizing: "border-box", fontFamily: "inherit" }} />
           </div>
           <p style={{ fontSize: 11, color: sub, lineHeight: 1.6, margin: "8px 0 0" }}>
-            雉・侭URL縺ｯGoogle Drive繧Дropbox縺ｮ蜈ｱ譛峨Μ繝ｳ繧ｯ繧定ｨｭ螳壹＠縺ｦ縺上□縺輔＞縲ょ・蟄ｦ繝ｻ螟乗悄隰帷ｿ偵↓髢｢騾｣縺吶ｋ縺碑ｳｪ蝠上〒縺ｯ閾ｪ蜍輔〒譯亥・縺輔ｌ縺ｾ縺吶・          </p>
-          {/* 霆｢騾√Ο繧ｰ・育ｮ｡逅・ｨｭ螳壼・縺ｮ縺ｿ陦ｨ遉ｺ・・*/}
+            資料URLはGoogle DriveやDropboxの共有リンクを設定してください。入学・夏期講習に関連するご質問では自動で案内されます。
+          </p>
+          {/* 転送ログ（管理設定内のみ表示） */}
           {log.length > 0 && (
             <div style={{ marginTop: 16, borderTop: `1px solid ${line}`, paddingTop: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: navy, marginBottom: 8 }}>鐙 霆｢騾√Ο繧ｰ</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: navy, marginBottom: 8 }}>📨 転送ログ</div>
               {log.map((l, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: sub, padding: "5px 0", borderBottom: i < log.length - 1 ? `1px dashed ${line}` : "none" }}>
-                  {l.urgent && <span style={{ background: red, color: "#fff", fontSize: 10, padding: "1px 6px", borderRadius: 4, flexShrink: 0 }}>邱頑･</span>}
-                  {l.docs && l.docs.length > 0 && <span style={{ background: amber, color: "#fff", fontSize: 10, padding: "1px 6px", borderRadius: 4, flexShrink: 0 }}>雉・侭譯亥・</span>}
-                  <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.ts}・悳l.question}</span>
-                  <span style={{ color: l.status.includes("謌仙粥") ? "#1B7F3B" : l.status.includes("螟ｱ謨・) ? red : sub, flexShrink: 0 }}>{l.status}</span>
-                  <a href={l.mailto} style={{ color: accent, textDecoration: "none", flexShrink: 0 }}>謇句虚霆｢騾・/a>
+                  {l.urgent && <span style={{ background: red, color: "#fff", fontSize: 10, padding: "1px 6px", borderRadius: 4, flexShrink: 0 }}>緊急</span>}
+                  {l.docs && l.docs.length > 0 && <span style={{ background: amber, color: "#fff", fontSize: 10, padding: "1px 6px", borderRadius: 4, flexShrink: 0 }}>資料案内</span>}
+                  <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.ts}｜{l.question}</span>
+                  <span style={{ color: l.status.includes("成功") ? "#1B7F3B" : l.status.includes("失敗") ? red : sub, flexShrink: 0 }}>{l.status}</span>
+                  <a href={l.mailto} style={{ color: accent, textDecoration: "none", flexShrink: 0 }}>手動転送</a>
                 </div>
               ))}
             </div>
@@ -322,12 +427,12 @@ export default function App() {
         </div>
       )}
 
-      {/* 繝√Ε繝・ヨ譛ｬ菴・*/}
+      {/* チャット本体 */}
       <div ref={scrollRef} style={{ height: 400, overflowY: "auto", padding: "16px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
         {messages.map((m, i) => (
           <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
             {m.role === "assistant" && (
-              <div style={{ width: 30, height: 30, borderRadius: 8, background: navy, color: "#fff", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 8, marginTop: 2 }}>譚ｱ騾ｲ</div>
+              <div style={{ width: 30, height: 30, borderRadius: 8, background: navy, color: "#fff", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginRight: 8, marginTop: 2 }}>東進</div>
             )}
             <div style={{ maxWidth: "74%" }}>
               <div style={{
@@ -340,7 +445,7 @@ export default function App() {
               }}>
                 {m.content}
               </div>
-              {/* 雉・侭繝舌リ繝ｼ */}
+              {/* 資料バナー */}
               {m.role === "assistant" && m.docs && m.docs.length > 0 && (
                 <div style={{ marginTop: 4 }}>
                   {m.docs.map(d => <DocBanner key={d} docKey={d} />)}
@@ -351,15 +456,15 @@ export default function App() {
         ))}
         {loading && (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 30, height: 30, borderRadius: 8, background: navy, color: "#fff", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>譚ｱ騾ｲ</div>
-            <div style={{ background: "#fff", border: `1px solid ${line}`, borderRadius: 14, borderTopLeftRadius: 4, padding: "10px 14px", fontSize: 13, color: sub }}>蜈･蜉帑ｸｭ窶ｦ</div>
+            <div style={{ width: 30, height: 30, borderRadius: 8, background: navy, color: "#fff", fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>東進</div>
+            <div style={{ background: "#fff", border: `1px solid ${line}`, borderRadius: 14, borderTopLeftRadius: 4, padding: "10px 14px", fontSize: 13, color: sub }}>入力中…</div>
           </div>
         )}
       </div>
 
-      {/* 繧医￥縺ゅｋ雉ｪ蝠・*/}
+      {/* よくある質問 */}
       <div style={{ borderTop: `1px solid ${line}`, background: "#fff", padding: "10px 16px" }}>
-        <div style={{ fontSize: 11, color: sub, marginBottom: 6, fontWeight: 500 }}>繧医￥縺ゅｋ縺碑ｳｪ蝠・/div>
+        <div style={{ fontSize: 11, color: sub, marginBottom: 6, fontWeight: 500 }}>よくあるご質問</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {QUICK_QUESTIONS.map((q, i) => (
             <button key={i} onClick={() => send(q)} disabled={loading}
@@ -370,9 +475,9 @@ export default function App() {
         </div>
       </div>
 
-      {/* 雉・侭荳隕ｧ繧ｷ繝ｧ繝ｼ繝医き繝・ヨ */}
+      {/* 資料一覧ショートカット */}
       <div style={{ borderTop: `1px solid ${line}`, background: `${navy}05`, padding: "10px 16px", display: "flex", gap: 8 }}>
-        <div style={{ fontSize: 11, color: sub, alignSelf: "center", flexShrink: 0, fontWeight: 500 }}>雉・侭・・/div>
+        <div style={{ fontSize: 11, color: sub, alignSelf: "center", flexShrink: 0, fontWeight: 500 }}>資料：</div>
         {Object.entries(DOCS).map(([key, doc]) => {
           const url = key === "pamphlet" ? cfg.pamphletUrl : cfg.summerUrl;
           return (
@@ -384,28 +489,27 @@ export default function App() {
         })}
       </div>
 
-      {/* 蜈･蜉帶ｬ・*/}
+      {/* 入力欄 */}
       <div style={{ borderTop: `1px solid ${line}`, background: "#fff", padding: "10px 14px", display: "flex", gap: 8, alignItems: "flex-end" }}>
         <textarea value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-          placeholder="縺碑ｳｪ蝠上ｒ蜈･蜉帙＠縺ｦ縺上□縺輔＞・・nter縺ｧ騾∽ｿ｡ / Shift+Enter縺ｧ謾ｹ陦鯉ｼ・ rows={1}
+          placeholder="ご質問を入力してください（Enterで送信 / Shift+Enterで改行）" rows={1}
           style={{ flex: 1, resize: "none", border: `1px solid ${line}`, borderRadius: 10, padding: "10px 12px", fontSize: 14, fontFamily: "inherit", color: ink, outline: "none", maxHeight: 100, boxSizing: "border-box" }} />
         <button onClick={() => send()} disabled={loading || !input.trim()}
           style={{ background: loading || !input.trim() ? "#9DB2D6" : accent, color: "#fff", border: "none", borderRadius: 10, padding: "11px 16px", fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>
-          騾∽ｿ｡
+          送信
         </button>
       </div>
 
-      {/* 繝輔ャ繧ｿ繝ｼ諠・ｱ */}
+      {/* フッター情報 */}
       <div style={{ background: `${navy}08`, borderTop: `1px solid ${line}`, padding: "10px 20px", display: "flex", gap: 16, flexWrap: "wrap" }}>
-        <a href="https://www.toshin-kasukabe.com/" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: accent, textDecoration: "none" }}>将 譏･譌･驛ｨ譬｡繧ｵ繧､繝・/a>
-        <a href="https://www.toshin.com/grade_select/kobetsu.php?kousha_type=1&kousha_code=6" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: accent, textDecoration: "none" }}>搭 蛟句挨逶ｸ隲・筏霎ｼ</a>
-        <a href="https://www.toshin.com/grade_select/shotai-invitation.php?kousha_code=6&kousha_type=1" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: accent, textDecoration: "none" }}>笘・・螟乗悄諡帛ｾ・ｬ帷ｿ・/a>
-        <span style={{ fontSize: 12, color: sub, marginLeft: "auto" }}>笘・0120-104-508</span>
+        <a href="https://www.toshin-kasukabe.com/" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: accent, textDecoration: "none" }}>🏫 春日部校サイト</a>
+        <a href="https://www.toshin.com/grade_select/kobetsu.php?kousha_type=1&kousha_code=6" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: accent, textDecoration: "none" }}>📋 個別相談申込</a>
+        <a href="https://www.toshin.com/grade_select/shotai-invitation.php?kousha_code=6&kousha_type=1" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: accent, textDecoration: "none" }}>☀️ 夏期招待講習</a>
+        <span style={{ fontSize: 12, color: sub, marginLeft: "auto" }}>☎ 0120-104-508</span>
       </div>
 
 
     </div>
   );
 }
-
